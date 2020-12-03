@@ -6,7 +6,7 @@
     android:layout_width="390dp"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:background="@color/green">
+    android:background="@color/congo_green">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -17,13 +17,14 @@
             android:id="@+id/tradeDialogTitle"
             android:layout_width="357dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="50dp"
             android:text="Congratulations!"
             android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/white"
-            android:textSize="30sp"
+            android:textSize="31sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -31,11 +32,12 @@
             android:id="@+id/tradeText"
             android:layout_width="237dp"
             android:layout_height="35dp"
-            android:layout_marginTop="8dp"
-            android:text="You have sucessfully bought x shares of ticker"
+            android:layout_marginStart="76dp"
+            android:text="You have sucessfully sold x shares of ticker"
             android:textAlignment="center"
             android:textColor="@color/white"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:textSize="15sp"
+            android:textStyle="italic"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tradeDialogTitle" />
 
@@ -43,14 +45,14 @@
             android:id="@+id/doneButton"
             android:layout_width="319dp"
             android:layout_height="50dp"
-            android:layout_marginTop="68dp"
+            android:layout_marginStart="34dp"
+            android:layout_marginTop="48dp"
             android:background="@drawable/rounded_button"
             android:backgroundTint="@color/white"
             android:text="Done"
-            android:textColor="@color/green"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:textColor="@color/congo_green"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tradeText" />
+            app:layout_constraintTop_toBottomOf="@+id/tradeText"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </RelativeLayout>

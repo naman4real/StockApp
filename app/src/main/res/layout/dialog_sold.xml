@@ -6,7 +6,7 @@
     android:layout_width="390dp"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:background="@color/green">
+    android:background="@color/congo_green">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -18,11 +18,11 @@
             android:layout_width="357dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="50dp"
             android:text="Congratulations!"
             android:textAlignment="center"
             android:textColor="@color/white"
-            android:textSize="30sp"
+            android:textSize="31sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -32,10 +32,11 @@
             android:layout_width="237dp"
             android:layout_height="35dp"
             android:layout_marginStart="76dp"
-            android:layout_marginTop="8dp"
             android:text="You have sucessfully sold x shares of ticker"
             android:textAlignment="center"
             android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="italic"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tradeDialogTitle" />
 
@@ -44,11 +45,11 @@
             android:layout_width="319dp"
             android:layout_height="50dp"
             android:layout_marginStart="34dp"
-            android:layout_marginTop="68dp"
+            android:layout_marginTop="48dp"
             android:background="@drawable/rounded_button"
             android:backgroundTint="@color/white"
             android:text="Done"
-            android:textColor="@color/green"
+            android:textColor="@color/congo_green"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tradeText" />
 

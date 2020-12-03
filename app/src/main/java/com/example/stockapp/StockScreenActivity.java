@@ -90,11 +90,7 @@ public class StockScreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_stock_screen);
-//        View decorView = getWindow().getDecorView();
-//        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-//        decorView.setSystemUiVisibility(uiOptions);
 
         portfolioPref = getSharedPreferences("stocks_in_portfolio", MODE_PRIVATE);
         favoritesPref = getSharedPreferences("stocks_in_favorites", MODE_PRIVATE);
@@ -110,7 +106,7 @@ public class StockScreenActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         Toolbar toolbar= (Toolbar) findViewById(R.id.my_toolbar2);
-        toolbar.setTitle("Stocks");
+        toolbar.setTitle("");
         setSupportActionBar(toolbar);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_back_button);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -148,6 +144,8 @@ public class StockScreenActivity extends AppCompatActivity {
                 TextView calculation = myDialog.findViewById(R.id.calculation);
                 TextView tradeText = myDialog.findViewById(R.id.tradeText);
 
+                System.out.println("edit text is"+quantity.getText().toString()+"he"+quantity.getText().toString().length());
+
                 title.setText("Trade "+currentCompany+" shares");
                 myDialog.show();
                 calculation.setText("0 x $"+currentPrice+"/share = $0.00");
@@ -158,6 +156,7 @@ public class StockScreenActivity extends AppCompatActivity {
                     }
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        System.out.println("quan text "+s.toString());
                         if(!s.toString().equals("") && !s.toString().equals(".")){
                             calculation.setText(s+" x $"+currentPrice+"/share = $"+Float.parseFloat(s.toString())*Float.parseFloat(currentPrice));
                             amount=Float.parseFloat(s.toString())*Float.parseFloat(currentPrice);
@@ -184,23 +183,25 @@ public class StockScreenActivity extends AppCompatActivity {
                 myDialog.findViewById(R.id.buyButton).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        int q = Integer.parseInt(quantity.getText().toString());
+
                         float currentWorth =  netWorthSharedPreferences.getFloat("cash",0);
-                        if(quantity.getText().toString().length()!=0 && q>0 && amount<=currentWorth){
+
+                        if(quantity.getText().toString().length()==0){
+                            toast.setText("Please enter valid amount");
+                            toast.show();
+                            return;
+                        }
+                        int q = Integer.parseInt(quantity.getText().toString());
+                        if(q>0 && amount<=currentWorth){
                             int updatedQ = sharedpreferences.getInt(currentTicker,0) + q;
                             editor.putInt(currentTicker,updatedQ);
                             editor.apply();
-                            setPortfolioData(Float.parseFloat(priceTextView.getText().toString()));
+                            setPortfolioData(Float.parseFloat(currentPrice));
                             String portStocks = port.getString("new_fav","");
                             System.out.println("yahu0"+portStocks);
                             currentWorth-=amount;
                             worthEditor.putFloat("cash",currentWorth);
                             worthEditor.apply();
-//                            if(!portStocks.contains(currentTicker) && !portStocks.equals("")){
-//                                portStocks+=currentTicker+",";
-//                                System.out.println("yahu"+portStocks);
-//
-//                            }
                             if(!stocksInPortfolio.contains(currentTicker)){
                                 stocksInPortfolio+=currentTicker+",";
                                 portfolioPrefEditor.putString("stocks",stocksInPortfolio);
@@ -220,7 +221,7 @@ public class StockScreenActivity extends AppCompatActivity {
                                 }
                             });
                         }
-                        else if(TextUtils.isEmpty(quantity.getText()) || q==0){
+                        else if(q==0){
                             toast.setText("Cannot buy less than 0 shares");
                             toast.show();
                         }
@@ -234,10 +235,15 @@ public class StockScreenActivity extends AppCompatActivity {
                 myDialog.findViewById(R.id.sellButton).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        if(quantity.getText().toString().length()==0){
+                            toast.setText("Please enter valid amount");
+                            toast.show();
+                            return;
+                        }
 
                         int q = Integer.parseInt(quantity.getText().toString());
                         int numShares = sharedpreferences.getInt(currentTicker,0);
-                        if(!quantity.getText().toString().equals("") && q>0 && q<=numShares){
+                        if(q>0 && q<=numShares){
                             int updatedQ = sharedpreferences.getInt(currentTicker,0) - q;
                             editor.putInt(currentTicker,updatedQ);
                             editor.apply();
@@ -247,12 +253,6 @@ public class StockScreenActivity extends AppCompatActivity {
                             currentWorth+=amount;
                             worthEditor.putFloat("cash",currentWorth);
                             worthEditor.apply();
-//                            if(updatedQ==0){
-//                                portStocks=portStocks.replace(currentTicker+",","");
-//                                System.out.println("yahu1"+portStocks);
-//
-//                            }
-
                             if(updatedQ==0){
                                 stocksInPortfolio=stocksInPortfolio.replace(currentTicker+",","");
                                 portfolioPrefEditor.putString("stocks",stocksInPortfolio);
@@ -273,7 +273,7 @@ public class StockScreenActivity extends AppCompatActivity {
                                 }
                             });
                         }
-                        else if(TextUtils.isEmpty(quantity.getText()) || q==0){
+                        else if(q==0){
                             toast.setText("Cannot sell less than 0 shares");
                             toast.show();
                         }
@@ -383,8 +383,8 @@ public class StockScreenActivity extends AppCompatActivity {
             marketValueTextView.setText("Start trading!");
         }
         else{
-            sharesOwnedTextView.setText("Shares Owned: "+sharedpreferences.getInt(currentTicker,0));
-            marketValueTextView.setText("Market Value: "+sharedpreferences.getInt(currentTicker,0) * price);
+            sharesOwnedTextView.setText("Shares Owned: "+sharedpreferences.getInt(currentTicker,0)+".0000");
+            marketValueTextView.setText("Market Value: $"+sharedpreferences.getInt(currentTicker,0) * price);
         }
 
     }
@@ -406,16 +406,21 @@ public class StockScreenActivity extends AppCompatActivity {
                     String high = response.getJSONObject(0).getString("high");
                     String volume = response.getJSONObject(0).getString("volume");
 
-                    priceTextView.setText(price);
+                    priceTextView.setText("$"+price);
                     currentPrice=price;
                     float change = Float.parseFloat(price) - Float.parseFloat(prev);
+                    decimalFormat = new DecimalFormat("#,###.##");
                     if(change>0){
                         changeTextView.setTextColor(getResources().getColor(R.color.green));
+                        changeTextView.setText("$"+decimalFormat.format(change));
                     } else if(change<0){
                         changeTextView.setTextColor(getResources().getColor(R.color.red));
+                        changeTextView.setText("-$"+decimalFormat.format(-1*change));
+                    }else{
+                        changeTextView.setText("$"+decimalFormat.format(change));
                     }
-                    decimalFormat = new DecimalFormat("#,###.00");
-                    changeTextView.setText(decimalFormat.format(change));
+
+                    decimalFormat = new DecimalFormat("###.00");
                     Double vol;
                     String volString;
                     if(volume!="null"){
@@ -424,8 +429,7 @@ public class StockScreenActivity extends AppCompatActivity {
                     }else{
                         volString="0.0";
                     }
-                    decimalFormat = new DecimalFormat("###.##");
-                    changeTextView.setText(decimalFormat.format(change));
+
                     if(bidPrice==null){
                         System.out.println("hey zero");
                     }else{

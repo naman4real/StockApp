@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="StockAppTheme.MyTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/light_gray</item>
+        <item name="android:colorPrimary">@color/purple_500</item>
+        <item name="autoCompleteTextViewStyle">@color/dark_gray</item>
+        <!--        <item name="editTextColor">@colo</item>-->
+    </style>
+</resources>

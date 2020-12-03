@@ -150,13 +150,14 @@ public class ChildRecyclerAdapter extends RecyclerView.Adapter<ChildRecyclerAdap
 
     @Override
     public void onRowSelected(ViewHolder myViewHolder) {
-    myViewHolder.stockCardView.setCardBackgroundColor(Color.GRAY);
+    myViewHolder.stockCardLayout.setBackgroundColor(Color.GRAY);
+    myViewHolder.info.setTextColor(Color.parseColor("#5A5A5A"));
     }
 
     @Override
     public void onRowClear(ViewHolder myViewHolder) {
-        myViewHolder.stockCardView.setCardBackgroundColor(Color.WHITE);
-
+        myViewHolder.stockCardLayout.setBackgroundColor(Color.parseColor("#f4f2f4")); //light Gray
+        myViewHolder.info.setTextColor(Color.parseColor("#808080"));
     }
 
 

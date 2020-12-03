@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/dialog_container"
-    android:layout_width="280dp"
-    android:layout_height="wrap_content"
+    android:layout_width="350dp"
+    android:layout_height="320dp"
     android:layout_gravity="center"
     android:background="@color/white">
 
@@ -12,84 +12,94 @@
         android:layout_width="match_parent"
         android:layout_height="289dp">
 
-        <TextView
-            android:id="@+id/calculation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="16dp"
-            android:text="calculation"
-            android:textAlignment="viewEnd"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/quantityInput" />
-
         <Button
             android:id="@+id/buyButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="25dp"
-            android:layout_marginTop="24dp"
+            android:layout_width="115dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="16dp"
             android:background="@drawable/rounded_button"
-            android:textColor="@color/white"
             android:text="Buy"
+            android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tradeText" />
+
+        <EditText
+            android:id="@+id/quantityInput"
+            android:layout_width="233dp"
+            android:layout_height="57dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="96dp"
+            android:ems="10"
+            android:hint="0"
+            android:inputType="number"
+            android:textSize="36sp"
+            android:theme="@style/EditTextTheme"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:textCursorDrawable="@drawable/cursor_color"/>
 
         <TextView
             android:id="@+id/textView4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="9dp"
-            android:layout_marginTop="46dp"
+            android:layout_marginTop="120dp"
+            android:layout_marginEnd="20dp"
             android:text="shares"
-            app:layout_constraintStart_toEndOf="@+id/quantityInput"
-            app:layout_constraintTop_toBottomOf="@+id/tradeDialogTitle" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textColor="@color/black"
+            android:textSize="19sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <EditText
-            android:id="@+id/quantityInput"
-            android:layout_width="198dp"
-            android:layout_height="45dp"
-            android:layout_marginStart="14dp"
-            android:layout_marginTop="29dp"
-            android:ems="10"
-            android:hint="0"
-            android:inputType="number"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tradeDialogTitle"
-            android:theme="@style/EditTextTheme" />
+        <TextView
+            android:id="@+id/calculation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:layout_marginEnd="20dp"
+            android:text="calculation"
+            android:textAlignment="viewEnd"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
         <TextView
             android:id="@+id/tradeDialogTitle"
-            android:layout_width="249dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
-            android:layout_marginTop="24dp"
+            android:layout_width="310dp"
+            android:layout_height="23dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="30dp"
             android:text="Trade this company's shares"
-            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textColor="@color/black"
+            android:textSize="19sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
             android:id="@+id/sellButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="63dp"
-            android:layout_marginTop="24dp"
+            android:layout_width="115dp"
+            android:layout_height="45dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="40dp"
             android:background="@drawable/rounded_button"
             android:text="Sell"
             android:textColor="@color/white"
-            app:layout_constraintStart_toEndOf="@+id/buyButton"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tradeText" />
 
         <TextView
             android:id="@+id/tradeText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="40dp"
-            android:layout_marginTop="66dp"
+            android:layout_marginTop="46dp"
             android:text="$xxx.xx available to buy ticker"
             android:textAlignment="center"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/quantityInput" />
     </androidx.constraintlayout.widget.ConstraintLayout>

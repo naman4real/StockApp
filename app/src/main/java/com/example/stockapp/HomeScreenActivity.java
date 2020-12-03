@@ -85,11 +85,8 @@ public class HomeScreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
-//        View decorView = getWindow().getDecorView();
-//        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-//        decorView.setSystemUiVisibility(uiOptions);
+
         sectionOneItems = new ArrayList<>();
         sectionTwoItems = new ArrayList<>();
 
@@ -101,7 +98,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         date=findViewById(R.id.date);
 
         Toolbar toolbar= (Toolbar) findViewById(R.id.my_toolbar);
-        toolbar.setTitle("Stocks");
+        toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
         calendar = Calendar.getInstance();
@@ -188,6 +185,7 @@ public class HomeScreenActivity extends AppCompatActivity {
                         clickedTicker = autoSuggestAdapter.getObject(position).split("-")[0];
                     }
                 });
+
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -558,9 +556,9 @@ public class HomeScreenActivity extends AppCompatActivity {
                             String changeString = decimalFormat.format(change);
                             if(numShares>0){
                                 if(numShares==1){
-                                    fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".0 share",Float.parseFloat(changeString),trend));
+                                    fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".00 share",Float.parseFloat(changeString),trend));
                                 }else{
-                                    fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".0 shares",Float.parseFloat(changeString),trend));
+                                    fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".00 shares",Float.parseFloat(changeString),trend));
                                 }
                             }else{
                                 fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),company_names.getString(ticker,""),Float.parseFloat(changeString),trend));
@@ -649,9 +647,9 @@ public class HomeScreenActivity extends AppCompatActivity {
                             }
                             int numShares = portfolioSharedPref.getInt(ticker,0);
                             if(numShares==1){
-                                pMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".0 share",Float.parseFloat(changeString),trend));
+                                pMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".00 share",Float.parseFloat(changeString),trend));
                             }else{
-                                pMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".0 shares",Float.parseFloat(changeString),trend));
+                                pMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".00 shares",Float.parseFloat(changeString),trend));
                             }
                             sumOfStocksValue +=Float.parseFloat(price)*portfolioSharedPref.getInt(ticker,0);
                         }

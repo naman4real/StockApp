@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -62,7 +63,7 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
         List<StockCard> items = section.getSectionItems();
 
         holder.sectionName.setText(sectionName);
-        holder.netWorth.setText(netWorth);
+        holder.netWorth.setText(String.format("%.2f",Float.parseFloat(netWorth)));
 
         id=-1;
         if(sectionName=="FAVORITES"){
@@ -83,6 +84,7 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
         touchHelper.attachToRecyclerView(childRecyclerView);
 
         holder.childRecyclerView.setAdapter(childRecyclerAdapter);
+        childRecyclerView.addItemDecoration(new DividerItemDecoration(currentParent.getContext(),DividerItemDecoration.VERTICAL));
     }
 
     public void clear(){
