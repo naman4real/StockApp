@@ -97,6 +97,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.titleTextView.setText(newsCardList.get(position).getTitle());
         holder.publishedAtTextView.setText(newsCardList.get(position).getDatePublished());
+        holder.sourceTextView.setText(newsCardList.get(position).getSource());
         Picasso.get().load(newsCardList.get(position).getImageUrl()).fit().centerInside().into(holder.imageView);
 
     }
@@ -116,6 +117,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             titleTextView=itemView.findViewById(R.id.titleNewsCard);
             publishedAtTextView=itemView.findViewById(R.id.publishedAt);
             imageView=itemView.findViewById(R.id.newsCardImg);
+            sourceTextView=itemView.findViewById(R.id.source);
         }
     }
 }

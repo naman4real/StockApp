@@ -36,11 +36,11 @@ public class GridViewAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        convertView = inflater.inflate(R.layout.stats_grid_item_layout, null);
-        TextView heading = (TextView) convertView.findViewById(R.id.heading);
-        TextView value = (TextView) convertView.findViewById(R.id.value);
-        heading.setText(items[position]);
-        value.setText(itemValues[position]);
+//        convertView = inflater.inflate(R.layout.stats_grid_item_layout, null);
+//        TextView heading = (TextView) convertView.findViewById(R.id.heading);
+//        TextView value = (TextView) convertView.findViewById(R.id.value);
+//        heading.setText(items[position]);
+//        value.setText(itemValues[position]);
         return convertView;
     }
 }

@@ -25,7 +25,9 @@ import com.google.android.material.snackbar.Snackbar;
 import org.json.JSONArray;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimerTask;
 
 public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapter.ViewHolder> {
@@ -107,13 +109,15 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
         }
     }
 
+
     private void enableSwipeToDeleteAndUndo(ChildRecyclerAdapter mAdapter) {
-        SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(currentParent.getContext()) {
+        SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(currentParent.getContext(),mAdapter) {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
 
                 final int position = viewHolder.getAdapterPosition();
                 final StockCard item = mAdapter.getData().get(position);
+                //item.get
 
                 mAdapter.removeItem(position);
 
@@ -124,49 +128,5 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
         itemTouchhelper.attachToRecyclerView(childRecyclerView);
     }
 
-//    class Update extends TimerTask {
-//        @Override
-//        public void run() {
-//            List<String> stockList = new ArrayList<>();
-//            for(int a=0;a<sectionList.size();a++){
-//                List<StockCard> items = sectionList.get(a).getSectionItems();
-//                List<StockCard> newItems = new ArrayList<>();
-//                String stocks="";
-//                for(int j=0;j<items.size();j++){
-//                    stocks+=items.get(j).getTicker()+",";
-//                }
-//                final String url = "http://nodejshw8app.us-east-1.elasticbeanstalk.com/detail/topright/" + stocks.substring(0,stocks.length()-1);
-//                RequestQueue queue = Volley.newRequestQueue(currentParent.getContext());
-//                SharedPreferences ticker_name = currentParent.getContext().getSharedPreferences("ticker_name", Context.MODE_PRIVATE);
-//                SharedPreferences portlofioSharedPref = currentParent.getContext().getSharedPreferences("portfolio", Context.MODE_PRIVATE);
-//                JsonArrayRequest getRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
-//                    @Override
-//                    public void onResponse(JSONArray response) {
-//                        try {
-//                            for (int i = 0; i < response.length(); i++) {
-//
-//                                String ticker = response.getJSONObject(i).getString("ticker");
-//                                String price = response.getJSONObject(i).getString("last");
-//                                String prev = response.getJSONObject(i).getString("prevClose");
-//                                float change = (Float.parseFloat(price) - Float.parseFloat(prev))/Float.parseFloat(prev);
-//                                items.add(ticker,)
-//                                new StockCard(ticker,Float.parseFloat(price),portlofioSharedPref.getInt(ticker,0) + " shares",change);
-//
-//                            }
-//
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }, new Response.ErrorListener() {
-//                    @Override
-//                    public void onErrorResponse(VolleyError error) {
-//                        Log.e("HttpClient", "error: " + error.toString());
-//                    }
-//                });
-//                queue.add(getRequest);
-//            }
-//
-//        }
-//    }
+
 }

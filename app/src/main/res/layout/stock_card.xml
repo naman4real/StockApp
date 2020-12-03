@@ -11,14 +11,27 @@
         android:id="@+id/stock_card"
         android:layout_width="410dp"
         android:layout_height="69dp"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/stockCard"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            >
+
+            <ImageView
+                android:id="@+id/trend"
+                android:layout_width="24dp"
+                android:layout_height="19dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="7dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/change"
+                app:srcCompat="@drawable/increase" />
 
             <Button
                 android:id="@+id/button"
@@ -42,6 +55,7 @@
                 android:layout_marginEnd="30dp"
                 android:layout_marginBottom="7dp"
                 android:text="TextView"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/titleNewsCard"
@@ -54,7 +68,8 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="30dp"
                 android:text="TextView"
-                android:textSize="17sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -64,9 +79,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
 
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="13dp"
                 android:layout_marginTop="8dp"
                 android:text="TextView"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:textColor="@color/dark_gray"
+                android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/card_ticker" />
 
@@ -74,13 +92,12 @@
                 android:id="@+id/card_ticker"
                 android:layout_width="wrap_content"
                 android:layout_height="19dp"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="13dp"
                 android:layout_marginTop="16dp"
                 android:text="TextView"
-                android:textSize="17sp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                app:layout_constraintEnd_toStartOf="@+id/titleNewsCard"
-                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>

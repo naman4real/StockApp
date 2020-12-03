@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -12,6 +13,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
@@ -33,6 +35,7 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -47,6 +50,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 
 public class StockScreenActivity extends AppCompatActivity {
@@ -69,6 +73,7 @@ public class StockScreenActivity extends AppCompatActivity {
     SharedPreferences netWorthSharedPreferences;
     SharedPreferences.Editor worthEditor;
     WebView wv;
+    int flag=0;
 
 
     SharedPreferences portfolioPref;
@@ -78,12 +83,14 @@ public class StockScreenActivity extends AppCompatActivity {
     String stocksInPortfolio;
     String stocksInFavorites;
 
+    DecimalFormat decimalFormat;
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_stock_screen);
 //        View decorView = getWindow().getDecorView();
 //        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
@@ -151,7 +158,7 @@ public class StockScreenActivity extends AppCompatActivity {
                     }
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        if(!s.toString().equals("")){
+                        if(!s.toString().equals("") && !s.toString().equals(".")){
                             calculation.setText(s+" x $"+currentPrice+"/share = $"+Float.parseFloat(s.toString())*Float.parseFloat(currentPrice));
                             amount=Float.parseFloat(s.toString())*Float.parseFloat(currentPrice);
                         }
@@ -179,7 +186,7 @@ public class StockScreenActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         int q = Integer.parseInt(quantity.getText().toString());
                         float currentWorth =  netWorthSharedPreferences.getFloat("cash",0);
-                        if(!quantity.getText().toString().equals("") && q>0 && amount<=currentWorth){
+                        if(quantity.getText().toString().length()!=0 && q>0 && amount<=currentWorth){
                             int updatedQ = sharedpreferences.getInt(currentTicker,0) + q;
                             editor.putInt(currentTicker,updatedQ);
                             editor.apply();
@@ -394,22 +401,71 @@ public class StockScreenActivity extends AppCompatActivity {
                     String prev = response.getJSONObject(0).getString("prevClose");
                     String low = response.getJSONObject(0).getString("low");
                     String bidPrice = response.getJSONObject(0).getString("bidPrice");
-                    String openPrice = response.getJSONObject(0).getString("bidPrice");
-                    String mid = response.getJSONObject(0).getString("bidPrice");
-                    String high = response.getJSONObject(0).getString("bidPrice");
-                    String volume = response.getJSONObject(0).getString("bidPrice");
+                    String openPrice = response.getJSONObject(0).getString("open");
+                    String mid = response.getJSONObject(0).getString("mid");
+                    String high = response.getJSONObject(0).getString("high");
+                    String volume = response.getJSONObject(0).getString("volume");
 
                     priceTextView.setText(price);
                     currentPrice=price;
-                    float change = (Float.parseFloat(price) - Float.parseFloat(prev))/Float.parseFloat(prev);
-                    changeTextView.setText(Float.toString(change));
-                    String[] items = {"Current price: ","Low: ", "Bid Price: ", "Open price: ", "Mid: ", "High: ", "Volume: "};
-                    String[] itemValues = {price, low, bidPrice, openPrice, mid, high, low, volume};
+                    float change = Float.parseFloat(price) - Float.parseFloat(prev);
+                    if(change>0){
+                        changeTextView.setTextColor(getResources().getColor(R.color.green));
+                    } else if(change<0){
+                        changeTextView.setTextColor(getResources().getColor(R.color.red));
+                    }
+                    decimalFormat = new DecimalFormat("#,###.00");
+                    changeTextView.setText(decimalFormat.format(change));
+                    Double vol;
+                    String volString;
+                    if(volume!="null"){
+                        vol = Double.parseDouble(volume);
+                        volString = decimalFormat.format(vol);
+                    }else{
+                        volString="0.0";
+                    }
+                    decimalFormat = new DecimalFormat("###.##");
+                    changeTextView.setText(decimalFormat.format(change));
+                    if(bidPrice==null){
+                        System.out.println("hey zero");
+                    }else{
+                        System.out.println("hey non");
+                    }
+                    String[] items = {  "Current price: "+(price!="null"?price:"0.0"),
+                                        "Low: "+(low!="null"?low:"0.0"),
+                                        "Bid Price: "+(bidPrice!="null"?bidPrice:"0.0"),
+                                        "Open price: "+(openPrice!="null"?openPrice:"0.0"),
+                                        "Mid: "+(mid!="null"?mid:"0.0"),
+                                        "High: "+(high!="null"?high:"0.0"),
+                                        "Volume: "+(volume!="null"?volString:"0.0")  };
+
                     statsGrid=findViewById(R.id.statsGrid);
-                    GridViewAdapter gridViewAdapter = new GridViewAdapter(getApplicationContext(),items,itemValues );
-                    statsGrid.setAdapter(gridViewAdapter);
+                    GridAdapter gridAdapter = new GridAdapter(getApplicationContext(),items );
+                    statsGrid.setAdapter(gridAdapter);
 
                     setPortfolioData(Float.parseFloat(price));
+
+                    flag++;
+                    if(flag==3){
+                        spinnerLayout.setVisibility(View.GONE);
+                        aboutTextView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(aboutTextView.getLineCount() <2)
+                                {
+                                    moreless.setVisibility(View.GONE);
+                                    aboutTextView.setGravity(Gravity.CENTER);
+                                }
+                                else
+                                {
+                                    moreless.setVisibility(View.VISIBLE);
+                                    aboutTextView.setMaxLines(2);
+
+                                }
+                            }
+                        });
+                        star.setVisible(true);
+                    }
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -422,6 +478,24 @@ public class StockScreenActivity extends AppCompatActivity {
             }
         });
         queue.add(getRequest);
+
+        getRequest.setRetryPolicy(new RetryPolicy() {
+            @Override
+            public int getCurrentTimeout() {
+                return 5000;
+            }
+
+            @Override
+            public int getCurrentRetryCount() {
+                Log.e("Retry", "retrying");
+                return 5000;
+            }
+
+            @Override
+            public void retry(VolleyError error) throws VolleyError {
+                Log.e("Volley error","Volley timeout error for stock stats");
+            }
+        });
 
 
 
@@ -441,6 +515,28 @@ public class StockScreenActivity extends AppCompatActivity {
                     currentCompany=name;
                     nameTextView.setText(name);
                     aboutTextView.setText(about);
+
+                    flag++;
+                    if(flag==3){
+                        spinnerLayout.setVisibility(View.GONE);
+                        aboutTextView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(aboutTextView.getLineCount() <2)
+                                {
+                                    moreless.setVisibility(View.GONE);
+                                    aboutTextView.setGravity(Gravity.CENTER);
+                                }
+                                else
+                                {
+                                    moreless.setVisibility(View.VISIBLE);
+                                    aboutTextView.setMaxLines(2);
+
+                                }
+                            }
+                        });
+                        star.setVisible(true);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -452,6 +548,23 @@ public class StockScreenActivity extends AppCompatActivity {
             }
         });
         queue.add(getRequest);
+        getRequest.setRetryPolicy(new RetryPolicy() {
+            @Override
+            public int getCurrentTimeout() {
+                return 5000;
+            }
+
+            @Override
+            public int getCurrentRetryCount() {
+                Log.e("Retry", "retrying");
+                return 5000;
+            }
+
+            @Override
+            public void retry(VolleyError error) throws VolleyError {
+                Log.e("Volley error","Volley timeout error for stock info");
+            }
+        });
 
 
 
@@ -468,8 +581,10 @@ public class StockScreenActivity extends AppCompatActivity {
             public void onResponse(JSONArray response) {
                 try {
                     String publishedAtFirstCard = calculatePublishedTime(response.getJSONObject(0).getString("publishedAt"));
+                    String sourceFirstCard= response.getJSONObject(0).getJSONObject("source").getString("name");
                     firstNewsCardTitleTextView.setText(response.getJSONObject(0).getString("title"));
                     firstNewsCardPublishedAtView.setText(publishedAtFirstCard);
+                    firstNewsCardSourceTextView.setText(sourceFirstCard);
 
                     Picasso.get().load(response.getJSONObject(0).getString("urlToImage")).into(firstNewsCardImageView);
                     setOnLongClickListenerForFirstNewsCard(
@@ -486,39 +601,41 @@ public class StockScreenActivity extends AppCompatActivity {
                         String urlToImage = response.getJSONObject(i).getString("urlToImage");
                         String title = response.getJSONObject(i).getString("title");
                         String newsUrl = response.getJSONObject(i).getString("url");
-                        //String source = response.getJSONObject(i).getString("source");
+                        String source = response.getJSONObject(i).getJSONObject("source").getString("name");
 
-                        //JSONObject source = response.getJSONObject(i).getString("source");
-//                        Gson gson =new Gson();
-//                        Log.d("news",gson.toJson(response.getJSONObject(i).getString("source")) );
 
                         String publishedAtString = calculatePublishedTime(publishedAt);
-                        newsCardList.add(new NewsCard(title,urlToImage,"source",publishedAtString, newsUrl));
+                        newsCardList.add(new NewsCard(title,urlToImage,source,publishedAtString, newsUrl));
                     }
 
                     recyclerView=findViewById(R.id.newsRecyclerView);
                     RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(StockScreenActivity.this,newsCardList);
                     recyclerView.setAdapter(recyclerViewAdapter);
                     recyclerView.setLayoutManager(new LinearLayoutManager(StockScreenActivity.this));
-                    recyclerView.addItemDecoration(new DividerItemDecoration(StockScreenActivity.this,DividerItemDecoration.VERTICAL));
+//                    recyclerView.addItemDecoration(new DividerItemDecoration(StockScreenActivity.this,DividerItemDecoration.VERTICAL));
                     System.out.println("current ticker"+currentTicker);
-                    spinnerLayout.setVisibility(View.GONE);
-                    aboutTextView.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(aboutTextView.getLineCount() <2)
-                            {
-                                moreless.setVisibility(View.GONE);
-                                aboutTextView.setGravity(Gravity.CENTER);
-                            }
-                            else
-                            {
-                                moreless.setVisibility(View.VISIBLE);
-                                aboutTextView.setMaxLines(2);
+                    flag++;
+                    if(flag==3){
+                        spinnerLayout.setVisibility(View.GONE);
+                        aboutTextView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(aboutTextView.getLineCount() <2)
+                                {
+                                    moreless.setVisibility(View.GONE);
+                                    aboutTextView.setGravity(Gravity.CENTER);
+                                }
+                                else
+                                {
+                                    moreless.setVisibility(View.VISIBLE);
+                                    aboutTextView.setMaxLines(2);
 
+                                }
                             }
-                        }
-                    });
+                        });
+                        star.setVisible(true);
+                    }
+
 
                     moreless.setOnClickListener(new View.OnClickListener() {
 
@@ -537,7 +654,7 @@ public class StockScreenActivity extends AppCompatActivity {
                     });
 
 
-                    star.setVisible(true);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -549,23 +666,45 @@ public class StockScreenActivity extends AppCompatActivity {
             }
         });
         queue.add(getRequest);
+        getRequest.setRetryPolicy(new RetryPolicy() {
+            @Override
+            public int getCurrentTimeout() {
+                return 5000;
+            }
+
+            @Override
+            public int getCurrentRetryCount() {
+                Log.e("Retry", "retrying");
+                return 5000;
+            }
+
+            @Override
+            public void retry(VolleyError error) throws VolleyError {
+                Log.e("Volley error","Volley timeout error for news");
+            }
+        });
 
     }
 
     private String calculatePublishedTime(String publishedAt) throws ParseException {
         String publishedAtString;
-        DecimalFormat decimalFormat = new DecimalFormat("0.#");
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         long difference = System.currentTimeMillis() - simpleDateFormat.parse(publishedAt).getTime();
-        difference=difference/1000/60;
-        publishedAtString = Double.toString(Math.ceil(difference) )+ "mins ago";
+        difference=difference/60000;
+        publishedAtString = difference+ " minutes ago";
         if(difference>60){
             difference/=60;
-            publishedAtString = Double.toString(Math.ceil(difference)) + "h ago";
+            publishedAtString = difference+ " hours ago";
         }
         if(difference>=24){
             difference/=24;
-            publishedAtString = Double.toString(Math.ceil(difference)) + " days ago";
+            if(difference<2){
+                publishedAtString = difference + " day ago";
+            }
+            else{
+                publishedAtString = difference + " days ago";
+            }
         }
         return publishedAtString;
     }

@@ -11,11 +11,13 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class SwipeToDeleteCallback extends ItemTouchHelper.Callback {
+
     Context mContext;
     private Paint mClearPaint;
     private ColorDrawable mBackground;
@@ -23,8 +25,9 @@ public class SwipeToDeleteCallback extends ItemTouchHelper.Callback {
     private Drawable deleteDrawable;
     private int intrinsicWidth;
     private int intrinsicHeight;
+    private final ChildRecyclerAdapter mAdapter;
 
-    SwipeToDeleteCallback(Context context) {
+    SwipeToDeleteCallback(Context context, ChildRecyclerAdapter mAdapter) {
         mContext = context;
         mBackground = new ColorDrawable();
         backgroundColor = Color.parseColor("#b80f0a");
@@ -33,6 +36,7 @@ public class SwipeToDeleteCallback extends ItemTouchHelper.Callback {
         deleteDrawable = ContextCompat.getDrawable(mContext, R.drawable.ic_delete);
         intrinsicWidth = deleteDrawable.getIntrinsicWidth();
         intrinsicHeight = deleteDrawable.getIntrinsicHeight();
+        this.mAdapter=mAdapter;
 
 
     }
@@ -48,8 +52,24 @@ public class SwipeToDeleteCallback extends ItemTouchHelper.Callback {
 
     @Override
     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+        System.out.println("swiped");
 
     }
+
+    @Override
+    public void onSelectedChanged(@Nullable RecyclerView.ViewHolder viewHolder, int actionState) {
+        if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
+            if (viewHolder instanceof ChildRecyclerAdapter.ViewHolder) {
+                ChildRecyclerAdapter.ViewHolder myViewHolder=
+                        (ChildRecyclerAdapter.ViewHolder) viewHolder;
+                mAdapter.onRowSelected(myViewHolder);
+            }
+
+        }
+        super.onSelectedChanged(viewHolder, actionState);
+    }
+
+
 
     @Override
     public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {

@@ -17,11 +17,13 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
@@ -42,10 +44,15 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class HomeScreenActivity extends AppCompatActivity {
     AutoSuggestAdapter autoSuggestAdapter;
@@ -54,9 +61,22 @@ public class HomeScreenActivity extends AppCompatActivity {
     ArrayList<String> portfolio;
     RecyclerView mainRecyclerView;
     TextView poweredByTiingo;
-    List<Section> sectionList;
+    public List<Section> sectionList;
     String ticker = "";
+    int flag=0;
+    float sumOfStocksValue;
+    String sectionTwoName="PORTFOLIO";
+    List<StockCard> sectionOneItems;
+    String sectionOneName="FAVORITES";
+    List<StockCard> sectionTwoItems;
+    String newWorth;
+    DecimalFormat decimalFormat;
+    TextView date;
+    Calendar calendar;
+    SimpleDateFormat simpleDateFormat;
+    String clickedTicker="";
 
+    Timer timer;
     ConstraintLayout spinnerLayout;
     Map<String, StockCard> pMap= new HashMap<>();
     Map<String, StockCard> fMap= new HashMap<>();
@@ -65,26 +85,35 @@ public class HomeScreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
 //        View decorView = getWindow().getDecorView();
 //        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
 //        decorView.setSystemUiVisibility(uiOptions);
-
+        sectionOneItems = new ArrayList<>();
+        sectionTwoItems = new ArrayList<>();
 
         netWorthSharedPreferences =getSharedPreferences("uninvested_cash",MODE_PRIVATE);
         cashEditor = netWorthSharedPreferences.edit();
         sectionList=new ArrayList<>();
         poweredByTiingo = findViewById(R.id.tiingo);
         spinnerLayout = findViewById(R.id.spinnerLayout);
+        date=findViewById(R.id.date);
 
         Toolbar toolbar= (Toolbar) findViewById(R.id.my_toolbar);
         toolbar.setTitle("Stocks");
         setSupportActionBar(toolbar);
 
+        calendar = Calendar.getInstance();
+        simpleDateFormat = new SimpleDateFormat("MMMM d, yyyy");
+        String d = simpleDateFormat.format(calendar.getTime());
+        date.setText(d);
+
+
         poweredByTiingo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse("https://www.tiingo.com/"));
                 startActivity(intent);
@@ -93,21 +122,49 @@ public class HomeScreenActivity extends AppCompatActivity {
 
 
         //getUpdatedDataPortfolio();
-        getPortfolioData();
+        //getPortfolioData();
         //getUpdatedDataFavorites();
-        getFavoritesData();
+        //getFavoritesData();
+
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Log.d("now","run now");
+                flag=0;
+                getPortfolioData();
+                getFavoritesData();
+            }
+        },0,15000);
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        timer.cancel();
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
         spinnerLayout.setVisibility(View.VISIBLE);
-        sectionList.clear();
+        //sectionList.clear();
         //getUpdatedDataPortfolio();
         getNames();
-        getPortfolioData();
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Log.d("now","run now");
+                flag=0;
+                getPortfolioData();
+                getFavoritesData();
+            }
+        },0,15000);
+        //getPortfolioData();
         //getUpdatedDataFavorites();
-        getFavoritesData();
+        //getFavoritesData();
     }
 
 
@@ -128,24 +185,28 @@ public class HomeScreenActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         autoCompleteTextView.setText(autoSuggestAdapter.getObject(position));
-                        Intent intent = new Intent(HomeScreenActivity.this,StockScreenActivity.class);
-                        intent.putExtra("ticker",ticker);
-                        startActivity(intent);
+                        clickedTicker = autoSuggestAdapter.getObject(position).split("-")[0];
                     }
                 });
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                return false;
+                Intent intent = new Intent(HomeScreenActivity.this,StockScreenActivity.class);
+                intent.putExtra("ticker",clickedTicker.substring(0,clickedTicker.length()-1));
+                startActivity(intent);
+                return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 getData(newText);
-                return false;
+                return true;
             }
+
         });
+
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -255,16 +316,17 @@ public class HomeScreenActivity extends AppCompatActivity {
                         String ticker = response.getJSONObject(i).getString("ticker");
                         String price = response.getJSONObject(i).getString("last");
                         String prev = response.getJSONObject(i).getString("prevClose");
-                        float change = (Float.parseFloat(price) - Float.parseFloat(prev))/Float.parseFloat(prev);
+                        float change = Float.parseFloat(price) - Float.parseFloat(prev);
                         int numShares = portlofioSharedPref.getInt(ticker,0);
-
+                        String trend;
+                        trend = change>0?"increase":"decrease";
                         if(numShares>0){
                             //sectionOneItems.add( new StockCard(ticker,Float.parseFloat(price),numShares +" shares",change));
-                            fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +" shares",change));
+                            fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".0 shares",change,trend));
                         }else{
 
                             //sectionOneItems.add( new StockCard(ticker,Float.parseFloat(price),ticker_name.getString(ticker,""),change));
-                            fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),ticker_name.getString(ticker,""),change));
+                            fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),ticker_name.getString(ticker,""),change,trend));
                         }
                     }
 
@@ -396,8 +458,10 @@ public class HomeScreenActivity extends AppCompatActivity {
                             String ticker = response.getJSONObject(i).getString("ticker");
                             String price = response.getJSONObject(i).getString("last");
                             String prev = response.getJSONObject(i).getString("prevClose");
-                            float change = (Float.parseFloat(price) - Float.parseFloat(prev))/Float.parseFloat(prev);
-                            pMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),favoritesSharedPref.getInt(ticker,0) + " shares",change));
+                            float change = Float.parseFloat(price) - Float.parseFloat(prev);
+                            String trend;
+                            trend = change>0?"increase":"decrease";
+                            pMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),favoritesSharedPref.getInt(ticker,0) + " shares",change,trend));
                             sumOfStocksValue +=Float.parseFloat(price)*favoritesSharedPref.getInt(ticker,0);
                             //sectionTwoItems.add( new StockCard(ticker,Float.parseFloat(price),favoritesSharedPref.getInt(ticker,0) + " shares",change));
                         }
@@ -429,8 +493,6 @@ public class HomeScreenActivity extends AppCompatActivity {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    System.out.println("here I am3");
-
                     Log.e("HttpClient", "error: " + error.toString());
                 }
             });
@@ -450,10 +512,8 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
 
-    private void getFavoritesData(){
-
-        String sectionOneName="FAVORITES";
-        List<StockCard> sectionOneItems = new ArrayList<>();
+    public void getFavoritesData(){
+        sectionOneItems = new ArrayList<>();
         SharedPreferences company_names = getSharedPreferences("company_names", Context.MODE_PRIVATE);
         SharedPreferences portfolioSharedPref = getSharedPreferences("portfolio", Context.MODE_PRIVATE);
         SharedPreferences favoritesPref = getSharedPreferences("stocks_in_favorites", MODE_PRIVATE);
@@ -467,7 +527,7 @@ public class HomeScreenActivity extends AppCompatActivity {
             mainRecyclerView.setLayoutManager(new LinearLayoutManager(HomeScreenActivity.this));
             mainRecyclerView.setAdapter(mainRecyclerAdapter);
             ViewCompat.setNestedScrollingEnabled(mainRecyclerView,false);
-            mainRecyclerView.addItemDecoration(new DividerItemDecoration(HomeScreenActivity.this,DividerItemDecoration.VERTICAL));
+            //mainRecyclerView.addItemDecoration(new DividerItemDecoration(HomeScreenActivity.this,DividerItemDecoration.VERTICAL));
             spinnerLayout.setVisibility(View.GONE);
         }
         else{
@@ -484,27 +544,50 @@ public class HomeScreenActivity extends AppCompatActivity {
                             String ticker = response.getJSONObject(i).getString("ticker");
                             String price = response.getJSONObject(i).getString("last");
                             String prev = response.getJSONObject(i).getString("prevClose");
-                            float change = (Float.parseFloat(price) - Float.parseFloat(prev))/Float.parseFloat(prev);
+                            float change = Float.parseFloat(price) - Float.parseFloat(prev);
                             int numShares = portfolioSharedPref.getInt(ticker,0);
+                            String trend;
+                            if(change>0){
+                                trend="increase";
+                            } else if(change<0){
+                                trend = "decrease";
+                            } else{
+                                trend = "same";
+                            }
+                            decimalFormat = new DecimalFormat("####.##");
+                            String changeString = decimalFormat.format(change);
                             if(numShares>0){
-                                fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +" shares",change));
+                                if(numShares==1){
+                                    fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".0 share",Float.parseFloat(changeString),trend));
+                                }else{
+                                    fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".0 shares",Float.parseFloat(changeString),trend));
+                                }
                             }else{
-                                fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),company_names.getString(ticker,""),change));
+                                fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),company_names.getString(ticker,""),Float.parseFloat(changeString),trend));
                             }
                         }
                         for(int i=0;i<stocksList.length;i++){
                             sectionOneItems.add(fMap.get(stocksList[i]));
                         }
-                        sectionList.add((new Section(sectionOneName,"null",sectionOneItems)));
+                        //sectionList.add((new Section(sectionOneName,"null",sectionOneItems)));
+                        float liquidCash = netWorthSharedPreferences.getFloat("cash",-1);
 
-                        mainRecyclerView = findViewById(R.id.mainRecyclerView);
-                        MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
-                        mainRecyclerView.setLayoutManager(new LinearLayoutManager(HomeScreenActivity.this));
-                        mainRecyclerView.setAdapter(mainRecyclerAdapter);
-                        ViewCompat.setNestedScrollingEnabled(mainRecyclerView,false);
-                        mainRecyclerView.addItemDecoration(new DividerItemDecoration(HomeScreenActivity.this,DividerItemDecoration.VERTICAL));
+                        cashEditor.apply();
+                        newWorth = Float.toString(liquidCash + sumOfStocksValue);
 
-                        spinnerLayout.setVisibility(View.GONE);
+                        flag++;
+                        if(flag==2){
+                            sectionList.clear();
+                            sectionList.add((new Section(sectionTwoName,newWorth,sectionTwoItems)));
+                            sectionList.add((new Section(sectionOneName,newWorth,sectionOneItems)));
+                            spinnerLayout.setVisibility(View.GONE);
+                            mainRecyclerView = findViewById(R.id.mainRecyclerView);
+                            MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
+                            mainRecyclerView.setLayoutManager(new LinearLayoutManager(HomeScreenActivity.this));
+                            mainRecyclerView.setAdapter(mainRecyclerAdapter);
+                            ViewCompat.setNestedScrollingEnabled(mainRecyclerView,false);
+                            //mainRecyclerView.addItemDecoration(new DividerItemDecoration(HomeScreenActivity.this,DividerItemDecoration.VERTICAL));
+                        }
 
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -513,8 +596,6 @@ public class HomeScreenActivity extends AppCompatActivity {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    System.out.println("here I am3");
-
                     Log.e("HttpClient", "error: " + error.toString());
                 }
             });
@@ -524,10 +605,8 @@ public class HomeScreenActivity extends AppCompatActivity {
 
     }
 
-
-    private void getPortfolioData(){
-        String sectionTwoName="PORTFOLIO";
-        List<StockCard> sectionTwoItems = new ArrayList<>();
+    public void getPortfolioData(){
+        sectionTwoItems = new ArrayList<>();
         SharedPreferences portfolioSharedPref = getSharedPreferences("portfolio", Context.MODE_PRIVATE);
         SharedPreferences portfolioPref = getSharedPreferences("stocks_in_portfolio", MODE_PRIVATE);
         SharedPreferences.Editor portfolioPrefEditor = portfolioPref.edit();
@@ -551,14 +630,29 @@ public class HomeScreenActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(JSONArray response) {
                     try {
-                        float sumOfStocksValue=0;
+                        sumOfStocksValue=0;
                         for (int i = 0; i < response.length(); i++) {
 
                             String ticker = response.getJSONObject(i).getString("ticker");
                             String price = response.getJSONObject(i).getString("last");
                             String prev = response.getJSONObject(i).getString("prevClose");
-                            float change = (Float.parseFloat(price) - Float.parseFloat(prev))/Float.parseFloat(prev);
-                            pMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),portfolioSharedPref.getInt(ticker,0) + " shares",change));
+                            float change = Float.parseFloat(price) - Float.parseFloat(prev);
+                            String trend;
+                            decimalFormat = new DecimalFormat("##.##");
+                            String changeString = decimalFormat.format(change);
+                            if(change>0){
+                                trend="increase";
+                            } else if(change<0){
+                                trend = "decrease";
+                            } else{
+                                trend = "same";
+                            }
+                            int numShares = portfolioSharedPref.getInt(ticker,0);
+                            if(numShares==1){
+                                pMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".0 share",Float.parseFloat(changeString),trend));
+                            }else{
+                                pMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".0 shares",Float.parseFloat(changeString),trend));
+                            }
                             sumOfStocksValue +=Float.parseFloat(price)*portfolioSharedPref.getInt(ticker,0);
                         }
                         for(int i=0;i<stocksList.length;i++){
@@ -567,12 +661,26 @@ public class HomeScreenActivity extends AppCompatActivity {
                         float liquidCash = netWorthSharedPreferences.getFloat("cash",-1);
 
                         cashEditor.apply();
-                        String newWorth = Float.toString(liquidCash + sumOfStocksValue);
+                        newWorth = Float.toString(liquidCash + sumOfStocksValue);
 //                        System.out.println("net worth"+liquidCash +"a"+ sumOfStocksValue);
-                        sectionList.add((new Section(sectionTwoName,newWorth,sectionTwoItems)));
-                        mainRecyclerView = findViewById(R.id.mainRecyclerView);
-                        MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
-                        mainRecyclerView.setAdapter(mainRecyclerAdapter);
+
+//                        mainRecyclerView = findViewById(R.id.mainRecyclerView);
+//                        MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
+//                        mainRecyclerView.setAdapter(mainRecyclerAdapter);
+
+                        flag++;
+                        if(flag==2){
+                            sectionList.clear();
+                            sectionList.add((new Section(sectionTwoName,newWorth,sectionTwoItems)));
+                            sectionList.add((new Section(sectionOneName,newWorth,sectionOneItems)));
+                            spinnerLayout.setVisibility(View.GONE);
+                            mainRecyclerView = findViewById(R.id.mainRecyclerView);
+                            MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
+                            mainRecyclerView.setLayoutManager(new LinearLayoutManager(HomeScreenActivity.this));
+                            mainRecyclerView.setAdapter(mainRecyclerAdapter);
+                            ViewCompat.setNestedScrollingEnabled(mainRecyclerView,false);
+                            //mainRecyclerView.addItemDecoration(new DividerItemDecoration(HomeScreenActivity.this,DividerItemDecoration.VERTICAL));
+                        }
 
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -581,14 +689,45 @@ public class HomeScreenActivity extends AppCompatActivity {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    System.out.println("here I am3");
-
                     Log.e("HttpClient", "error: " + error.toString());
                 }
             });
             queue.add(getRequest);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
 
 }
+
+//class Update extends TimerTask {
+//
+//    @Override
+//    public void run() {
+//        HomeScreenActivity homeScreenActivity = new HomeScreenActivity();
+//        homeScreenActivity.sectionList.clear();
+//        homeScreenActivity.getPortfolioData();
+//        homeScreenActivity.getFavoritesData();
+//    }
+//}

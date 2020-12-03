@@ -4,14 +4,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
@@ -29,6 +32,7 @@ public class ChildRecyclerAdapter extends RecyclerView.Adapter<ChildRecyclerAdap
     List<StockCard> items;
     int id;
     ViewGroup parent;
+    ConstraintLayout stockCardLayout;
     public ChildRecyclerAdapter(List<StockCard> items, int id){
         this.id=id;
         this.items=items;
@@ -41,6 +45,7 @@ public class ChildRecyclerAdapter extends RecyclerView.Adapter<ChildRecyclerAdap
         View view = layoutInflater.inflate(R.layout.stock_card,parent,false);
         this.parent=parent;
 
+
         return new ViewHolder(view);
 
     }
@@ -52,6 +57,15 @@ public class ChildRecyclerAdapter extends RecyclerView.Adapter<ChildRecyclerAdap
         holder.currentPrice.setText(Float.toString(currentCard.getCurrentPrice()));
         holder.ticker.setText(currentCard.getTicker());
         holder.info.setText(currentCard.getInfo());
+        if(currentCard.getTrend().equals("increase")){
+            holder.trend.setImageResource(R.drawable.increase);
+            holder.trend.setColorFilter(Color.parseColor("#00AA00"));
+            holder.change.setTextColor(Color.parseColor("#00AA00"));
+        }else if(currentCard.getTrend().equals("decrease")){
+            holder.trend.setImageResource(R.drawable.decrease);
+            holder.trend.setColorFilter(Color.parseColor("#DD0000"));
+            holder.change.setTextColor(Color.parseColor("#DD0000"));
+        }
     }
 
     @Override
@@ -62,11 +76,15 @@ public class ChildRecyclerAdapter extends RecyclerView.Adapter<ChildRecyclerAdap
 
 
 
+
+
     class ViewHolder extends RecyclerView.ViewHolder{
 
         CardView stockCardView;
         TextView currentPrice, change, info, ticker;
         Button button;
+        ImageView trend;
+        ConstraintLayout stockCardLayout;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             stockCardView = itemView.findViewById(R.id.stock_card);
@@ -75,7 +93,19 @@ public class ChildRecyclerAdapter extends RecyclerView.Adapter<ChildRecyclerAdap
             info = itemView.findViewById(R.id.card_info);
             ticker = itemView.findViewById(R.id.card_ticker);
             button = itemView.findViewById(R.id.button);
+            trend = itemView.findViewById(R.id.trend);
+            stockCardLayout = itemView.findViewById(R.id.stockCard);
+            this.stockCardLayout=stockCardLayout;
             button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(parent.getContext(),StockScreenActivity.class);
+                    intent.putExtra("ticker",ticker.getText());
+                    parent.getContext().startActivity(intent);
+                }
+            });
+
+            stockCardLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(parent.getContext(),StockScreenActivity.class);
@@ -128,6 +158,9 @@ public class ChildRecyclerAdapter extends RecyclerView.Adapter<ChildRecyclerAdap
         myViewHolder.stockCardView.setCardBackgroundColor(Color.WHITE);
 
     }
+
+
+
 
     public void removeItem(int position) {
 

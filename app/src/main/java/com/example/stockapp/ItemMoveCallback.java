@@ -1,8 +1,12 @@
 package com.example.stockapp;
 
+import android.graphics.Color;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.Collections;
 
 public class ItemMoveCallback extends ItemTouchHelper.Callback {
 
@@ -35,7 +39,7 @@ public class ItemMoveCallback extends ItemTouchHelper.Callback {
 
     @Override
     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-
+        //viewHolder.stockCardView.setCardBackgroundColor(Color.GRAY);
     }
 
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder,
@@ -47,6 +51,7 @@ public class ItemMoveCallback extends ItemTouchHelper.Callback {
                 ChildRecyclerAdapter.ViewHolder myViewHolder=
                         (ChildRecyclerAdapter.ViewHolder) viewHolder;
                 mAdapter.onRowSelected(myViewHolder);
+                viewHolder.itemView.setBackgroundColor(Color.GRAY);
             }
 
         }
