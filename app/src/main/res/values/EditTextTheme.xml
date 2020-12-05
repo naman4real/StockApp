@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="EditTextTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorControlNormal">@color/default_color</item>
+        <item name="colorControlNormal">@color/mid_dark_gray</item>
         <item name="colorControlActivated">@color/purple_200</item>
-        <item name="colorControlHighlight">@color/default_color</item>
+        <item name="colorControlHighlight">@color/mid_dark_gray</item>
     </style>
 </resources>

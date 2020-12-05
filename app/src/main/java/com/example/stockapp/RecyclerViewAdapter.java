@@ -63,7 +63,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse("https://twitter.com/intent/tweet?text="+"Check out this Link: \n"+newsCardList.get(viewHolder.getAdapterPosition()).getNewsUrl()));
+                        intent.setData(Uri.parse("https://twitter.com/intent/tweet?text="+"Check out this Link:&url="+newsCardList.get(viewHolder.getAdapterPosition()).getNewsUrl()+"&hashtags=CSCI571StockApp"));
                         parent.getContext().startActivity(intent);
 
                     }

@@ -41,8 +41,8 @@
                 android:id="@+id/twitter_image"
                 android:layout_width="138dp"
                 android:layout_height="50dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginRight="3dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginRight="1dp"
                 android:background="#FFFFFF"
                 android:scaleType="fitCenter"
                 android:src="@drawable/bluetwitter"
@@ -52,12 +52,11 @@
                 android:id="@+id/chrome_image"
                 android:layout_width="138dp"
                 android:layout_height="50dp"
-                android:layout_marginLeft="3dp"
-                android:layout_marginTop="5dp"
+                android:layout_marginLeft="1dp"
+                android:layout_marginTop="2dp"
                 android:background="#FFFFFF"
                 android:scaleType="fitCenter"
                 android:src="@drawable/chrome" />
         </LinearLayout>
-
     </LinearLayout>
 </RelativeLayout>

@@ -10,9 +10,8 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/stock_card"
         android:layout_width="410dp"
-        android:layout_height="69dp"
+        android:layout_height="wrap_content"
 
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -23,14 +22,25 @@
             android:layout_height="match_parent"
             android:background="@color/light_gray">
 
+            <View
+                android:id="@+id/divider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/medium_gray"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <ImageView
                 android:id="@+id/trend"
                 android:layout_width="24dp"
                 android:layout_height="19dp"
+                android:layout_marginTop="7dp"
                 android:layout_marginEnd="5dp"
                 android:layout_marginBottom="7dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/change"
+                app:layout_constraintTop_toBottomOf="@+id/card_price"
                 app:srcCompat="@drawable/increase" />
 
             <Button
@@ -52,20 +62,18 @@
                 android:id="@+id/change"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
                 android:layout_marginEnd="30dp"
-                android:layout_marginBottom="7dp"
                 android:text="TextView"
                 android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/titleNewsCard"
-                app:layout_constraintVertical_bias="1.0" />
+                app:layout_constraintTop_toBottomOf="@+id/card_price" />
 
             <TextView
                 android:id="@+id/card_price"
                 android:layout_width="wrap_content"
                 android:layout_height="19dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginEnd="30dp"
                 android:text="TextView"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
@@ -80,7 +88,7 @@
                 android:layout_height="wrap_content"
 
                 android:layout_marginStart="13dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="7dp"
                 android:text="TextView"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:textColor="@color/dark_gray"
@@ -93,7 +101,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="19dp"
                 android:layout_marginStart="13dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="10dp"
                 android:text="TextView"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
                 android:textSize="18sp"

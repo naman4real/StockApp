@@ -63,7 +63,12 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
         List<StockCard> items = section.getSectionItems();
 
         holder.sectionName.setText(sectionName);
-        holder.netWorth.setText(String.format("%.2f",Float.parseFloat(netWorth)));
+        System.out.println("netWorth"+netWorth);
+        if(netWorth==null){
+            holder.netWorth.setText("20000.00");
+        }else{
+            holder.netWorth.setText(String.format("%.2f",Float.parseFloat(netWorth)));
+        }
 
         id=-1;
         if(sectionName=="FAVORITES"){
@@ -84,7 +89,7 @@ public class MainRecyclerAdapter extends RecyclerView.Adapter<MainRecyclerAdapte
         touchHelper.attachToRecyclerView(childRecyclerView);
 
         holder.childRecyclerView.setAdapter(childRecyclerAdapter);
-        childRecyclerView.addItemDecoration(new DividerItemDecoration(currentParent.getContext(),DividerItemDecoration.VERTICAL));
+        //childRecyclerView.addItemDecoration(new DividerItemDecoration(currentParent.getContext(),DividerItemDecoration.VERTICAL));
     }
 
     public void clear(){

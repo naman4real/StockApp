@@ -1,9 +1,11 @@
 package com.example.stockapp;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -15,7 +17,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -43,6 +47,7 @@ import com.google.gson.reflect.TypeToken;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -75,6 +80,7 @@ public class HomeScreenActivity extends AppCompatActivity {
     Calendar calendar;
     SimpleDateFormat simpleDateFormat;
     String clickedTicker="";
+    Handler handler;
 
     Timer timer;
     ConstraintLayout spinnerLayout;
@@ -85,11 +91,12 @@ public class HomeScreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //setTheme(R.style.Theme_StockApp);
         setContentView(R.layout.activity_main);
 
         sectionOneItems = new ArrayList<>();
         sectionTwoItems = new ArrayList<>();
-
+        getWindow().setStatusBarColor(ContextCompat.getColor(this,R.color.light_gray));
         netWorthSharedPreferences =getSharedPreferences("uninvested_cash",MODE_PRIVATE);
         cashEditor = netWorthSharedPreferences.edit();
         sectionList=new ArrayList<>();
@@ -123,23 +130,41 @@ public class HomeScreenActivity extends AppCompatActivity {
         //getUpdatedDataFavorites();
         //getFavoritesData();
 
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Log.d("now","run now");
-                flag=0;
-                getPortfolioData();
-                getFavoritesData();
-            }
-        },0,15000);
+//        timer = new Timer();
+//        timer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                Log.d("now","run now");
+//                flag=0;
+//                getPortfolioData();
+//                getFavoritesData();
+//            }
+//        },0,15000);
+        getPortfolioData();
+        getFavoritesData();
+        handler=new Handler();
+        handler.postDelayed(runnable, 15000);
+
     }
+
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            flag=0;
+            getPortfolioData();
+            getFavoritesData();
+            handler.postDelayed(this, 15000);
+        }
+    };
+
 
 
     @Override
     protected void onPause() {
         super.onPause();
-        timer.cancel();
+        //timer.cancel();
+        handler.removeCallbacks(runnable);
+
     }
 
     @Override
@@ -149,22 +174,27 @@ public class HomeScreenActivity extends AppCompatActivity {
         //sectionList.clear();
         //getUpdatedDataPortfolio();
         getNames();
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Log.d("now","run now");
-                flag=0;
-                getPortfolioData();
-                getFavoritesData();
-            }
-        },0,15000);
-        //getPortfolioData();
-        //getUpdatedDataFavorites();
-        //getFavoritesData();
+//        timer = new Timer();
+//        timer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                Log.d("now","run now");
+//                flag=0;
+//                getPortfolioData();
+//                getFavoritesData();
+//            }
+//        },0,15000);
+
+        flag=0;
+        getPortfolioData();
+        getFavoritesData();
+        handler = new Handler();
+        handler.postDelayed(runnable,15000);
+
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_search_button,menu);
@@ -172,10 +202,12 @@ public class HomeScreenActivity extends AppCompatActivity {
         SearchView searchView = (SearchView) menuItem.getActionView();
         searchView.setQueryHint("");
         searchView.setIconified(false);
+
         final AutoCompleteTextView autoCompleteTextView = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
         autoSuggestAdapter = new AutoSuggestAdapter(HomeScreenActivity.this, android.R.layout.simple_dropdown_item_1line);
-
+        autoCompleteTextView.setTextCursorDrawable(R.drawable.cursor_color);
         autoCompleteTextView.setThreshold(3);
+        autoCompleteTextView.setDropDownHeight(1100);
         autoCompleteTextView.setAdapter(autoSuggestAdapter);
         autoCompleteTextView.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
@@ -190,6 +222,7 @@ public class HomeScreenActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                searchView.clearFocus();
                 Intent intent = new Intent(HomeScreenActivity.this,StockScreenActivity.class);
                 intent.putExtra("ticker",clickedTicker.substring(0,clickedTicker.length()-1));
                 startActivity(intent);
@@ -226,123 +259,6 @@ public class HomeScreenActivity extends AppCompatActivity {
                     }
                     autoSuggestAdapter.setData(searchResults);
                     autoSuggestAdapter.notifyDataSetChanged();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("HttpClient", "error: " + error.toString());
-            }
-        });
-        queue.add(getRequest);
-    }
-
-    private void getUpdatedDataFavorites(){
-        String sectionOneName="FAVORITES";
-        SharedPreferences favoritesSharedPref = getSharedPreferences("favorites", Context.MODE_PRIVATE);
-        SharedPreferences portlofioSharedPref = getSharedPreferences("portfolio", Context.MODE_PRIVATE);
-        SharedPreferences ticker_name = getSharedPreferences("ticker_name", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = ticker_name.edit();
-
-        Map<String,?> keys = favoritesSharedPref.getAll();
-        List<StockCard> sectionOneItems = new ArrayList<>();
-        favorites = new ArrayList<>();
-        SharedPreferences fav = getSharedPreferences("fav_list",Context.MODE_PRIVATE);
-        String json = fav.getString("new_fav", "");
-        String[] stocksList = json.split(",");
-
-
-
-        if(json.length()>0){
-
-            for(int i=0;i<stocksList.length;i++){
-                if(!stocksList[i].equals("")){
-                    favorites.add(stocksList[i]);
-                }
-            }
-        }
-        else{
-
-            for(Map.Entry<String,?> entry : keys.entrySet()){
-
-                favorites.add(entry.getKey());
-            }
-        }
-        String stocks = "";
-
-        for(int i=0;i<favorites.size();i++){
-            stocks+=favorites.get(i) + ",";
-            String ticker = favorites.get(i);
-            final String url = "http://nodejshw8app.us-east-1.elasticbeanstalk.com/detail/topleft/" + favorites.get(i);
-            RequestQueue queue = Volley.newRequestQueue(HomeScreenActivity.this);
-            JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
-                    try {
-                        String name = response.getString("name");
-                        System.out.println(ticker+"andv"+name);
-                        editor.putString(ticker,name);
-                        editor.apply();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.e("HttpClient", "error: " + error.toString());
-                }
-            });
-            queue.add(getRequest);
-        }
-
-        stocks = stocks.substring(0,stocks.length()-1);
-
-        System.out.println("jaare"+stocks);
-        final String url = "http://nodejshw8app.us-east-1.elasticbeanstalk.com/detail/topright/" + stocks;
-        RequestQueue queue = Volley.newRequestQueue(HomeScreenActivity.this);
-
-        JsonArrayRequest getRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
-                try {
-                    for (int i = 0; i < response.length(); i++) {
-
-
-                        String ticker = response.getJSONObject(i).getString("ticker");
-                        String price = response.getJSONObject(i).getString("last");
-                        String prev = response.getJSONObject(i).getString("prevClose");
-                        float change = Float.parseFloat(price) - Float.parseFloat(prev);
-                        int numShares = portlofioSharedPref.getInt(ticker,0);
-                        String trend;
-                        trend = change>0?"increase":"decrease";
-                        if(numShares>0){
-                            //sectionOneItems.add( new StockCard(ticker,Float.parseFloat(price),numShares +" shares",change));
-                            fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),numShares +".0 shares",change,trend));
-                        }else{
-
-                            //sectionOneItems.add( new StockCard(ticker,Float.parseFloat(price),ticker_name.getString(ticker,""),change));
-                            fMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),ticker_name.getString(ticker,""),change,trend));
-                        }
-                    }
-
-                    for(int i=0;i<favorites.size();i++){
-                        sectionOneItems.add(fMap.get(favorites.get(i)));
-                    }
-
-                    sectionList.add((new Section(sectionOneName,"null",sectionOneItems)));
-
-                    mainRecyclerView = findViewById(R.id.mainRecyclerView);
-                    MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
-                    mainRecyclerView.setLayoutManager(new LinearLayoutManager(HomeScreenActivity.this));
-                    mainRecyclerView.setAdapter(mainRecyclerAdapter);
-                    ViewCompat.setNestedScrollingEnabled(mainRecyclerView,false);
-                    mainRecyclerView.addItemDecoration(new DividerItemDecoration(HomeScreenActivity.this,DividerItemDecoration.VERTICAL));
-
-                    spinnerLayout.setVisibility(View.GONE);
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -409,107 +325,6 @@ public class HomeScreenActivity extends AppCompatActivity {
 
     }
 
-    private void getUpdatedDataPortfolio(){
-        String sectionTwoName="PORTFOLIO";
-
-        SharedPreferences favoritesSharedPref = getSharedPreferences("portfolio", Context.MODE_PRIVATE);
-        Map<String, Integer> keys = (Map<String, Integer>) favoritesSharedPref.getAll();
-        List<StockCard> sectionTwoItems = new ArrayList<>();
-        portfolio = new ArrayList<String>();
-
-        SharedPreferences port = getSharedPreferences("port_list",Context.MODE_PRIVATE);
-        String json = port.getString("new_fav", "");
-        String[] stocksList = json.split(",");
-
-
-//        if(json.length()>0){
-//            for(int i=0;i<stocksList.length;i++){
-//                if(!stocksList[i].equals("")){
-//                    portfolio.add(stocksList[i]);
-//                }
-//            }
-//        }
-        //else{
-            for(Map.Entry<String,Integer> entry : keys.entrySet()){
-                if(entry.getValue()>0){
-                    portfolio.add(entry.getKey());
-                }
-            }
-        //}
-
-        String stocks = "";
-        for(int i=0;i<portfolio.size();i++){
-            stocks+=portfolio.get(i) + ",";
-        }
-        if(stocks.length()>0){
-            stocks = stocks.substring(0,stocks.length()-1);
-            final String url = "http://nodejshw8app.us-east-1.elasticbeanstalk.com/detail/topright/" + stocks;
-            RequestQueue queue = Volley.newRequestQueue(HomeScreenActivity.this);
-
-            JsonArrayRequest getRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
-                @Override
-                public void onResponse(JSONArray response) {
-                    try {
-                        float sumOfStocksValue=0;
-                        for (int i = 0; i < response.length(); i++) {
-
-                            String ticker = response.getJSONObject(i).getString("ticker");
-                            String price = response.getJSONObject(i).getString("last");
-                            String prev = response.getJSONObject(i).getString("prevClose");
-                            float change = Float.parseFloat(price) - Float.parseFloat(prev);
-                            String trend;
-                            trend = change>0?"increase":"decrease";
-                            pMap.put(ticker,new StockCard(ticker,Float.parseFloat(price),favoritesSharedPref.getInt(ticker,0) + " shares",change,trend));
-                            sumOfStocksValue +=Float.parseFloat(price)*favoritesSharedPref.getInt(ticker,0);
-                            //sectionTwoItems.add( new StockCard(ticker,Float.parseFloat(price),favoritesSharedPref.getInt(ticker,0) + " shares",change));
-                        }
-                        for(int i=0;i<portfolio.size();i++){
-                            sectionTwoItems.add(pMap.get(portfolio.get(i)));
-                        }
-                        float liquidCash = netWorthSharedPreferences.getFloat("cash",-1);
-//                        SharedPreferences netWorthSharedPref = getSharedPreferences("net_worth",MODE_PRIVATE);
-//                        SharedPreferences.Editor editor = netWorthSharedPref.edit();
-//                        float netWorth = netWorthSharedPref.getFloat("net_worth",-1);
-//                        if(worth+sumOfStocksValue > netWorth){
-//                            editor.putFloat("net_worth",worth + sumOfStocksValue);
-//                        }
-
-                        cashEditor.apply();
-                        //editor.apply();
-                        //String newWorth = Float.toString(netWorthSharedPreferences.getFloat("net_worth",-1));
-                        String newWorth = Float.toString(liquidCash + sumOfStocksValue);
-                        System.out.println("net worth"+liquidCash +"a"+ sumOfStocksValue);
-                        sectionList.add((new Section(sectionTwoName,newWorth,sectionTwoItems)));
-                        mainRecyclerView = findViewById(R.id.mainRecyclerView);
-                        MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
-                        mainRecyclerView.setAdapter(mainRecyclerAdapter);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.e("HttpClient", "error: " + error.toString());
-                }
-            });
-            queue.add(getRequest);
-        }
-        else{
-
-            cashEditor.putFloat("cash",20000f);
-            cashEditor.apply();
-            sectionList.add((new Section(sectionTwoName,"20000.00",sectionTwoItems)));
-
-            mainRecyclerView = findViewById(R.id.mainRecyclerView);
-            MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
-            mainRecyclerView.setAdapter(mainRecyclerAdapter);
-        }
-
-    }
-
-
     public void getFavoritesData(){
         sectionOneItems = new ArrayList<>();
         SharedPreferences company_names = getSharedPreferences("company_names", Context.MODE_PRIVATE);
@@ -519,14 +334,19 @@ public class HomeScreenActivity extends AppCompatActivity {
         String stocks = favoritesPref.getString("stocks","");
         String[] stocksList;
         if(stocks.equals("")){
-            sectionList.add((new Section(sectionOneName,"null",sectionOneItems)));
-            mainRecyclerView = findViewById(R.id.mainRecyclerView);
-            MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
-            mainRecyclerView.setLayoutManager(new LinearLayoutManager(HomeScreenActivity.this));
-            mainRecyclerView.setAdapter(mainRecyclerAdapter);
-            ViewCompat.setNestedScrollingEnabled(mainRecyclerView,false);
-            //mainRecyclerView.addItemDecoration(new DividerItemDecoration(HomeScreenActivity.this,DividerItemDecoration.VERTICAL));
-            spinnerLayout.setVisibility(View.GONE);
+            flag++;
+            if(flag==2){
+                sectionList.clear();
+                sectionList.add((new Section(sectionTwoName,newWorth,sectionTwoItems)));
+                sectionList.add((new Section(sectionOneName,newWorth,sectionOneItems)));
+                spinnerLayout.setVisibility(View.GONE);
+                mainRecyclerView = findViewById(R.id.mainRecyclerView);
+                MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
+                mainRecyclerView.setLayoutManager(new LinearLayoutManager(HomeScreenActivity.this));
+                mainRecyclerView.setAdapter(mainRecyclerAdapter);
+                ViewCompat.setNestedScrollingEnabled(mainRecyclerView,false);
+            }
+
         }
         else{
             stocksList=stocks.substring(0,stocks.length()-1).split(",");
@@ -604,6 +424,7 @@ public class HomeScreenActivity extends AppCompatActivity {
     }
 
     public void getPortfolioData(){
+        System.out.println("ouch");
         sectionTwoItems = new ArrayList<>();
         SharedPreferences portfolioSharedPref = getSharedPreferences("portfolio", Context.MODE_PRIVATE);
         SharedPreferences portfolioPref = getSharedPreferences("stocks_in_portfolio", MODE_PRIVATE);
@@ -611,13 +432,22 @@ public class HomeScreenActivity extends AppCompatActivity {
         String stocks = portfolioPref.getString("stocks","");
         String[] stocksList;
         if(stocks.equals("")){
+            flag++;
             cashEditor.putFloat("cash",20000f);
             cashEditor.apply();
-            sectionList.add((new Section(sectionTwoName,"20000.00",sectionTwoItems)));
+            if(flag==2){
+                sectionList.clear();
+                sectionList.add((new Section(sectionTwoName,newWorth,sectionTwoItems)));
+                sectionList.add((new Section(sectionOneName,newWorth,sectionOneItems)));
 
-            mainRecyclerView = findViewById(R.id.mainRecyclerView);
-            MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
-            mainRecyclerView.setAdapter(mainRecyclerAdapter);
+                spinnerLayout.setVisibility(View.GONE);
+                mainRecyclerView = findViewById(R.id.mainRecyclerView);
+                MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(sectionList);
+                mainRecyclerView.setLayoutManager(new LinearLayoutManager(HomeScreenActivity.this));
+                mainRecyclerView.setAdapter(mainRecyclerAdapter);
+                ViewCompat.setNestedScrollingEnabled(mainRecyclerView,false);
+            }
+
         }
         else{
             stocksList=stocks.substring(0,stocks.length()-1).split(",");

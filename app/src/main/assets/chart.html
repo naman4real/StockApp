@@ -87,6 +87,20 @@
                 split: true
             },
 
+             plotOptions: {
+                  series: {
+                      dataGrouping: {
+                          units: [[
+                          'week',                         // unit name
+                          [1]                             // allowed multiples
+                      ], [
+                          'month',
+                          [1, 2, 3, 4, 6]
+                      ]]
+                          }
+                       }
+                    },
+
             series: [{
                 type: 'candlestick',
                 name: message,

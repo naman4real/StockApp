@@ -91,6 +91,7 @@ public class StockScreenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stock_screen);
+        getWindow().setStatusBarColor(ContextCompat.getColor(this,R.color.light_gray));
 
         portfolioPref = getSharedPreferences("stocks_in_portfolio", MODE_PRIVATE);
         favoritesPref = getSharedPreferences("stocks_in_favorites", MODE_PRIVATE);
@@ -247,7 +248,7 @@ public class StockScreenActivity extends AppCompatActivity {
                             int updatedQ = sharedpreferences.getInt(currentTicker,0) - q;
                             editor.putInt(currentTicker,updatedQ);
                             editor.apply();
-                            setPortfolioData(Float.parseFloat(priceTextView.getText().toString()));
+                            setPortfolioData(Float.parseFloat(currentPrice));
                             String portStocks = port.getString("new_fav","");
                             float currentWorth =  netWorthSharedPreferences.getFloat("cash",0);
                             currentWorth+=amount;
@@ -298,7 +299,6 @@ public class StockScreenActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        //SharedPreferences favoritesSharedPref = getSharedPreferences("favorites", Context.MODE_PRIVATE);
         SharedPreferences favoritesSharedPref = getSharedPreferences("stocks_in_favorites", Context.MODE_PRIVATE);
 
         getMenuInflater().inflate(R.menu.stock_screen_menu_buttons,menu);
@@ -307,9 +307,11 @@ public class StockScreenActivity extends AppCompatActivity {
         star_empty.setVisible(false);
         star_filled.setVisible(false);
         if(!favoritesSharedPref.getString("stocks","").contains(currentTicker)){
+            System.out.println("empty");
             star = star_empty;
         }
         else{
+            System.out.println("filled");
             star = star_filled;
         }
 
@@ -326,15 +328,9 @@ public class StockScreenActivity extends AppCompatActivity {
         Toast toast = Toast.makeText(StockScreenActivity.this, "favorites text", Toast.LENGTH_SHORT);
         switch (item.getItemId()){
             case R.id.star_empty:
+
                 editor.putString(currentTicker,"1");
                 editor.apply();
-
-//                if(!favStocks.equals("")){
-//                    favStocks+=","+currentTicker;
-//                    editorFavorites.putString("new_fav",favStocks);
-//                    editorFavorites.apply();
-//                }
-
                 if(!stocksInFavorites.contains(currentTicker)){
                     stocksInFavorites+=currentTicker+",";
                     favoritesPrefEditor.putString("stocks",stocksInFavorites);
@@ -349,12 +345,6 @@ public class StockScreenActivity extends AppCompatActivity {
             case R.id.star_filled:
                 editor.remove(currentTicker);
                 editor.apply();
-//                if(!favStocks.equals("")) {
-//                    favStocks=favStocks.replace(currentTicker+",","");
-//                    editorFavorites.putString("new_fav",favStocks);
-//                    editorFavorites.apply();
-//                }
-
                 stocksInFavorites=stocksInFavorites.replace(currentTicker+",","");
                 favoritesPrefEditor.putString("stocks",stocksInFavorites);
                 favoritesPrefEditor.apply();
@@ -406,6 +396,7 @@ public class StockScreenActivity extends AppCompatActivity {
                     String high = response.getJSONObject(0).getString("high");
                     String volume = response.getJSONObject(0).getString("volume");
 
+                    high = String.format("%.2f",Float.parseFloat(high));
                     priceTextView.setText("$"+price);
                     currentPrice=price;
                     float change = Float.parseFloat(price) - Float.parseFloat(prev);
@@ -420,7 +411,7 @@ public class StockScreenActivity extends AppCompatActivity {
                         changeTextView.setText("$"+decimalFormat.format(change));
                     }
 
-                    decimalFormat = new DecimalFormat("###.00");
+                    decimalFormat = new DecimalFormat("#,###.00");
                     Double vol;
                     String volString;
                     if(volume!="null"){
@@ -732,7 +723,7 @@ public class StockScreenActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse("https://twitter.com/intent/tweet?text="+"Check out this Link: \n"+newsUrl));
+                        intent.setData(Uri.parse("https://twitter.com/intent/tweet?text="+"Check out this Link:&url="+newsUrl+"&hashtags=CSCI571StockApp"));
                         startActivity(intent);
 
                     }
